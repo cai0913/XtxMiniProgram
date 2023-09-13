@@ -1,5 +1,7 @@
 // src/pages/goods/goods.vue
 <script setup lang="ts">
+import AddressPanel from './components/AddressPanel.vue'
+import ServicePanel from './components/ServicePanel.vue'
 import { getGoodsAPI } from '@/services/goods'
 import type { GoodsResult } from '@/types/goods'
 import { onLoad } from '@dcloudio/uni-app'
@@ -37,6 +39,14 @@ const popup = ref<{
   open: (type?: UniHelper.UniPopupType) => void
   close: () => void
 }>()
+
+// 弹出层条件渲染
+const popName = ref<'address' | 'service'>()
+const openPop = (name: typeof popName.value) => {
+  // 修改弹出层名称
+  popName.value = name
+  popup.value?.open()
+}
 </script>
 
 <template>
@@ -73,11 +83,11 @@ const popup = ref<{
           <text class="label">选择</text>
           <text class="text ellipsis"> 请选择商品规格 </text>
         </view>
-        <view class="item arrow">
+        <view class="item arrow" @tap="openPop('address')">
           <text class="label">送至</text>
           <text class="text ellipsis"> 请选择收获地址 </text>
         </view>
-        <view class="item arrow" @tap="popup?.open()">
+        <view class="item arrow" @tap="openPop('service')">
           <text class="label">服务</text>
           <text class="text ellipsis"> 无忧退 快速退款 免费包邮 </text>
         </view>
@@ -149,8 +159,8 @@ const popup = ref<{
   </view>
   <!-- uni-ui 弹出层组件 -->
   <uni-popup ref="popup" type="bottom" background-color="#fff">
-    <view> 1111 </view>
-    <button @tap="popup?.close()">关闭弹出层</button>
+    <address-panel v-if="popName === 'address'" @close="popup?.close()" />
+    <service-panel v-if="popName === 'service'" @close="popup?.close()" />
   </uni-popup>
 </template>
 

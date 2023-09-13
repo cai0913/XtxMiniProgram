@@ -39,7 +39,7 @@
             <text class="name sk-transparent sk-text-14-2857-428 sk-text">杂项</text>
           </view>
         </scroll-view>
-        <scroll-view scroll-y="true" class="secondary">
+        <scroll-view :scroll-y="true" class="secondary">
           <view is="components/XtxSwiper" class="banner">
             <view class="carousel XtxSwiper--carousel">
               <swiper :circular="true" :interval="3000" :current="0" :autoplay="false">

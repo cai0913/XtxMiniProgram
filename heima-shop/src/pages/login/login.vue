@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { postLoginWxMinAPI, postLoginWxMinSimpleAPI } from '@/services/login'
 import { useMemberStore } from '@/stores'
-import { onLoad } from '@dcloudio/uni-app'
+import { onLoad, onUnload } from '@dcloudio/uni-app'
 import type { LoginResult } from '@/types/member'
 // 保存登录凭证
 let code = ''
@@ -30,18 +30,22 @@ const onGetphonenumberSimple = async () => {
   const res = await postLoginWxMinSimpleAPI('17798468016')
   LoginSuccess(res.result)
 }
-
+let time = undefined
 const LoginSuccess = (profile: LoginResult) => {
   // 保存会员信息
   const memberStore = useMemberStore()
   memberStore.setProfile(profile)
   uni.showToast({ icon: 'success', title: '登录成功' })
   // 因为switchTab会关闭所有非tabBar页面，导致提示看不见，所以延迟半秒让提示显示
-  setTimeout(() => {
+  time = setTimeout(() => {
     // 页面跳转
     uni.switchTab({ url: '/pages/my/my' })
   }, 300)
 }
+
+onUnload(() => {
+  time = undefined
+})
 </script>
 
 <template>

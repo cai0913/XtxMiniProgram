@@ -5,7 +5,7 @@ import type { GuessItem } from '@/types/home'
 import type { PageParams } from '@/types/global'
 
 const props = defineProps<{
-  loading: boolean
+  loading?: boolean
 }>()
 let isLoading = props.loading
 

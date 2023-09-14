@@ -8,6 +8,7 @@ import { onLoad } from '@dcloudio/uni-app'
 import { ref } from 'vue'
 import type { BannerItem, CategoryItem, HotItem } from '@/types/home'
 import type { XtxGuessInstance } from '@/types/component'
+import { useGuessList } from '@/composables'
 
 // 防抖参数
 const isLoading = ref<boolean>(false)
@@ -16,7 +17,6 @@ const isLoading = ref<boolean>(false)
 const bannerList = ref<BannerItem[]>([])
 const getHomeBannerData = async () => {
   const res = await getHomeBannerAPI()
-  console.log(res)
   bannerList.value = res.result
 }
 // 获取并存储前台分类数据
@@ -38,8 +38,7 @@ onLoad(async () => {
   await Promise.all([getHomeBannerData(), getCategoryData(), getHotPanelData()])
   IsLoading.value = false
 })
-// guesslike组件实例
-const guessRef = ref<XtxGuessInstance>()
+const { guessRef } = useGuessList()
 // 滚动触底处理函数
 const onScrolltolower = () => {
   if (isLoading.value === true) return

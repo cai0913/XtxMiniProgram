@@ -30,7 +30,7 @@ const onGetphonenumberSimple = async () => {
   const res = await postLoginWxMinSimpleAPI('17798468016')
   LoginSuccess(res.result)
 }
-let time = undefined
+let time: number = 0
 const LoginSuccess = (profile: LoginResult) => {
   // 保存会员信息
   const memberStore = useMemberStore()
@@ -44,7 +44,7 @@ const LoginSuccess = (profile: LoginResult) => {
 }
 
 onUnload(() => {
-  time = undefined
+  clearTimeout(time)
 })
 </script>
 

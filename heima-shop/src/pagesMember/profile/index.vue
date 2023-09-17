@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { getMemberProfileAPI, putMemberProfileAPI } from '@/services/profile'
-import { onLoad } from '@dcloudio/uni-app'
+import { onLoad, onUnload } from '@dcloudio/uni-app'
 import type { ProfileDetail } from '@/types/member'
 import { ref } from 'vue'
+import { useMemberStore } from '@/stores'
 
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
@@ -15,6 +16,8 @@ const getMemberProfileData = async () => {
 onLoad(() => {
   getMemberProfileData()
 })
+
+const memberStore = useMemberStore()
 
 // 修改头像
 const onAvatarChange = () => {
@@ -34,7 +37,10 @@ const onAvatarChange = () => {
         success: (res) => {
           if (res.statusCode === 200) {
             const avatar = JSON.parse(res.data).result.avatar
+            // 个人信息页数据更新
             profile.value!.avatar = avatar
+            // Store头像更新
+            memberStore.profile!.avatar = avatar
             uni.showToast({ icon: 'success', title: '更新成功' })
           } else {
             uni.showToast({ icon: 'error', title: '更新失败' })
@@ -44,13 +50,24 @@ const onAvatarChange = () => {
     },
   })
 }
+// 定时器变量
+let time: number = 0
 // 点击保存提交表单
 const onSubmit = async () => {
   const res = await putMemberProfileAPI({
     nickname: profile.value?.nickname,
   })
+  // 更新Store昵称
+  memberStore.profile!.nickname = res.result.nickname
   uni.showToast({ icon: 'success', title: '保存成功' })
+  time = setTimeout(() => {
+    uni.navigateBack()
+  }, 300)
 }
+
+onUnload(() => {
+  clearTimeout(time)
+})
 </script>
 
 <template>

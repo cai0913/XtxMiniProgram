@@ -33,3 +33,17 @@ export type ProfileDetail = BaseProfile & {
 }
 /** 性别 */
 export type Gender = '女' | '男'
+
+/** 个人信息 修改请求体参数 */
+// pick:复用已定义的类型，语法：Pick<要复用的类型,'要复用的属性'|'xxx'|'xxx'...>
+export type ProfileParams = Pick<
+  ProfileDetail,
+  'nickname' | 'gender' | 'birthday' | 'profession'
+> & {
+  /** 省份编码 */
+  provinceCode?: string
+  /** 城市编码 */
+  cityCode?: string
+  /** 区/县编码 */
+  countyCode?: string
+}

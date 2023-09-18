@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { getMemberAddressByIdAPI, postMemberAddressAPI } from '@/services/address'
+import {
+  getMemberAddressByIdAPI,
+  postMemberAddressAPI,
+  putMemberAddressAPI,
+} from '@/services/address'
 import { onLoad, onUnload } from '@dcloudio/uni-app'
 
 // 表单数据
@@ -54,10 +58,15 @@ let time = 0
 
 // 提交表单
 const onSubmit = async () => {
-  // 新建地址请求
-  await postMemberAddressAPI(addressForm.value)
+  if (query.id) {
+    // 修改地址请求
+    await putMemberAddressAPI(query.id, addressForm.value)
+  } else {
+    // 新建地址请求
+    await postMemberAddressAPI(addressForm.value)
+  }
   // 成功提示
-  uni.showToast({ icon: 'success', title: '保存成功' })
+  uni.showToast({ icon: 'success', title: query.id ? '修改成功' : '添加成功' })
   // 返回上一页
   time = setTimeout(() => {
     uni.navigateBack()
@@ -77,7 +86,7 @@ onUnload(() => {
         <text class="label">收货人</text>
         <input class="input" placeholder="请填写收货人姓名" v-model="addressForm.receiver" />
       </view>
-      <view class="addressForm-item">
+      <view class="form-item">
         <text class="label">手机号码</text>
         <input class="input" placeholder="请填写收货人手机号码" v-model="addressForm.contact" />
       </view>
@@ -110,7 +119,6 @@ onUnload(() => {
   </view>
   <!-- 提交按钮 -->
   <button class="button" @tap="onSubmit">保存并使用</button>
-  {{ addressForm }}
 </template>
 
 <style lang="scss">

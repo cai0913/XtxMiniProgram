@@ -71,6 +71,32 @@ const onChangeSelectedAll = async () => {
   })
   await putMemberCartSelectedAPI({ selected: _isSelectedAll })
 }
+
+// 计算选中单品列表
+const selectedCartList = computed(() => {
+  return cartList.value.filter((v) => v.selected)
+})
+
+// 计算商品的总件数
+const selectedCartListCount = computed(() => {
+  return selectedCartList.value.reduce((sum, item) => sum + item.count, 0)
+})
+
+// 计算选中总金额
+const selectedCartListMoney = computed(() => {
+  return selectedCartList.value
+    .reduce((sum, item) => sum + item.nowPrice * item.count, 0)
+    .toFixed(2)
+})
+
+// 结算按钮
+const gotoPayment = () => {
+  if (selectedCartListCount.value === 0) {
+    return uni.showToast({ icon: 'none', title: '请选择商品' })
+  }
+  // 跳转到结算页
+  uni.showToast({ icon: 'none', title: '敬请期待~' })
+}
 </script>
 
 <template>
@@ -142,9 +168,15 @@ const onChangeSelectedAll = async () => {
       <view class="toolbar">
         <text class="all" :class="{ checked: isSelectedAll }" @tap="onChangeSelectedAll">全选</text>
         <text class="text">合计:</text>
-        <text class="amount">100</text>
+        <text class="amount">{{ selectedCartListMoney }}</text>
         <view class="button-grounp">
-          <view class="button payment-button" :class="{ disabled: true }"> 去结算(10) </view>
+          <view
+            class="button payment-button"
+            :class="{ disabled: selectedCartListCount === 0 }"
+            @tap="gotoPayment"
+          >
+            去结算({{ selectedCartListCount }})
+          </view>
         </view>
       </view>
     </template>

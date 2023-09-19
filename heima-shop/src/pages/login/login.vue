@@ -39,7 +39,8 @@ const LoginSuccess = (profile: LoginResult) => {
   // 因为switchTab会关闭所有非tabBar页面，导致提示看不见，所以延迟半秒让提示显示
   time = setTimeout(() => {
     // 页面跳转
-    uni.switchTab({ url: '/pages/my/my' })
+    // uni.switchTab({ url: '/pages/my/my' })
+    uni.navigateBack()
   }, 300)
 }
 

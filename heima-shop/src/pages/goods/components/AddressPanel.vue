@@ -1,6 +1,30 @@
 // AddressPanel.vue
 <script setup lang="ts">
+import { getMemberAddressAPI } from '@/services/address'
+import { useAddressStore } from '@/stores/modules/address'
+import type { AddressItem } from '@/types/address'
+import { onMounted } from 'vue'
+import { ref } from 'vue'
+
 const emit = defineEmits<{ (event: 'close'): void }>()
+
+// 修改收货地址
+const addressStore = useAddressStore()
+const onChangeAddress = (item: AddressItem) => {
+  addressStore.changeSelectedAddress(item)
+  emit('close')
+}
+
+//获取并保存收货地址列表函数
+const addressList = ref<AddressItem[]>([])
+const getMemberAddressData = async () => {
+  const res = await getMemberAddressAPI()
+  addressList.value = res.result
+}
+
+onMounted(() => {
+  getMemberAddressData()
+})
 </script>
 
 <template>
@@ -11,20 +35,10 @@ const emit = defineEmits<{ (event: 'close'): void }>()
     <view class="title">配送至</view>
     <!-- 内容 -->
     <view class="content">
-      <view class="item">
-        <view class="user">李明 13824686868</view>
-        <view class="address">北京市顺义区后沙峪地区安平北街6号院</view>
-        <text class="icon icon-checked"></text>
-      </view>
-      <view class="item">
-        <view class="user">王东 13824686868</view>
-        <view class="address">北京市顺义区后沙峪地区安平北街6号院</view>
-        <text class="icon icon-ring"></text>
-      </view>
-      <view class="item">
-        <view class="user">张三 13824686868</view>
-        <view class="address">北京市朝阳区孙河安平北街6号院</view>
-        <text class="icon icon-ring"></text>
+      <view class="item" v-for="item in addressList" :key="item.id" @tap="onChangeAddress(item)">
+        <view class="user">{{ item.receiver }} {{ item.contact }}</view>
+        <view class="address">{{ item.address }}</view>
+        <text class="icon icon-checked" v-if="item.isDefault === 1"></text>
       </view>
     </view>
     <view class="footer">

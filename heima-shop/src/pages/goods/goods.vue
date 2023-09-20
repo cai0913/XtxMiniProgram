@@ -13,6 +13,8 @@ import type { GoodsResult } from '@/types/goods'
 import { onLoad } from '@dcloudio/uni-app'
 import { ref } from 'vue'
 import { computed } from 'vue'
+import { useAddressStore } from '@/stores/modules/address'
+import { getMemberAddressAPI } from '@/services/address'
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
 // 接收页面参数
@@ -47,9 +49,17 @@ const getGoodsByIdData = async () => {
     }),
   }
 }
+
+// 获取地址
+const getAddress = async () => {
+  const res = await getMemberAddressAPI()
+  addressStore.selectedAddress = res.result.find((v) => v.isDefault)
+}
+
 // 页面加载
 onLoad(() => {
   getGoodsByIdData()
+  getAddress()
 })
 // 轮播图变化时并保存下标
 const currentIndex = ref(0)
@@ -110,6 +120,18 @@ const onAddCart = async (ev: SkuPopupEvent) => {
   uni.showToast({ icon: 'success', title: '添加成功' })
   isShowSku.value = false
 }
+
+// 立即购买
+const onBuyNow = async (ev: SkuPopupEvent) => {
+  uni.navigateTo({
+    url: `/pagesOrder/create/create?skuId=${ev._id}&count=${ev.buy_num}&addressId=${addressStore.selectedAddress?.id}`,
+  })
+  // 关闭SKU组件
+  isShowSku.value = false
+}
+
+// 获取store中address
+const addressStore = useAddressStore()
 </script>
 
 <template>
@@ -127,6 +149,7 @@ const onAddCart = async (ev: SkuPopupEvent) => {
     }"
     ref="skuPopupRef"
     @add-cart="onAddCart"
+    @buy-now="onBuyNow"
   />
   <scroll-view scroll-y class="viewport">
     <!-- 基本信息 -->
@@ -163,7 +186,13 @@ const onAddCart = async (ev: SkuPopupEvent) => {
         </view>
         <view class="item arrow" @tap="openPop('address')">
           <text class="label">送至</text>
-          <text class="text ellipsis"> 请选择收获地址 </text>
+          <text class="text ellipsis" v-if="addressStore.selectedAddress?.id === undefined">
+            请选择收获地址
+          </text>
+          <text class="text ellipsis" v-else>
+            {{ addressStore.selectedAddress.fullLocation }}
+            {{ addressStore.selectedAddress.address }}
+          </text>
         </view>
         <view class="item arrow" @tap="openPop('service')">
           <text class="label">服务</text>

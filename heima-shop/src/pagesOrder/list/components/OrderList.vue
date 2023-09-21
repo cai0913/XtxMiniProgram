@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { OrderState, orderStateList } from '@/services/constants'
-import { getMemberOrderAPI } from '@/services/order'
+import { deleteMemberOrderAPI, getMemberOrderAPI } from '@/services/order'
+import { getPayMockAPI, getPayWxPayMiniPayAPI } from '@/services/pay'
 import type { OrderItem, OrderListParams } from '@/types/order'
 import { ref } from 'vue'
 import { onMounted } from 'vue'
@@ -30,6 +31,38 @@ const getMemberOrderData = async () => {
 onMounted(() => {
   getMemberOrderData()
 })
+
+// 删除订单
+const onOrderDelete = (id: string) => {
+  // 二次确认
+  uni.showModal({
+    content: '是否删除订单',
+    success: async (res) => {
+      if (res.confirm) {
+        await deleteMemberOrderAPI({ ids: [id] })
+        uni.redirectTo({ url: '/pagesOrder/list/list' })
+      }
+    },
+  })
+  getMemberOrderData()
+}
+
+// 订单支付
+const onOrderPay = async (id: string) => {
+  if (import.meta.env.DEV) {
+    // 开发环境模拟支付
+    await getPayMockAPI({ orderId: id })
+  } else {
+    // 正式环境下微信支付
+    const res = await getPayWxPayMiniPayAPI({ orderId: id })
+    wx.requestPayment(res.result)
+  }
+  // 成功提示
+  uni.showToast({ icon: 'success', title: '支付成功' })
+  // 更新订单状态
+  const order = orderList.value.find((v) => v.id === id)
+  order!.orderState = OrderState.DaiFaHuo
+}
 </script>
 <template>
   <scroll-view scroll-y class="orders">
@@ -40,7 +73,11 @@ onMounted(() => {
         <!-- 订单状态文字 -->
         <text>{{ orderStateList[item.orderState].text }}</text>
         <!-- 待评价/已完成/已取消 状态: 展示删除订单 -->
-        <text class="icon-delete" v-if="item.orderState >= OrderState.DaiPingJia"></text>
+        <text
+          class="icon-delete"
+          v-if="item.orderState >= OrderState.DaiPingJia"
+          @tap="onOrderDelete(item.id)"
+        ></text>
       </view>
       <!-- 商品信息，点击商品跳转到订单详情，不是商品详情 -->
       <navigator
@@ -68,7 +105,7 @@ onMounted(() => {
       <view class="action">
         <!-- 待付款状态：显示去支付按钮 -->
         <template v-if="item.orderState === OrderState.DaiFuKuan">
-          <view class="button primary">去支付</view>
+          <view class="button primary" @tap="onOrderPay(item.id)">去支付</view>
         </template>
         <template v-else>
           <navigator

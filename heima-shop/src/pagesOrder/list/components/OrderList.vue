@@ -1,6 +1,10 @@
 <script lang="ts" setup>
 import { OrderState, orderStateList } from '@/services/constants'
-import { deleteMemberOrderAPI, getMemberOrderAPI } from '@/services/order'
+import {
+  deleteMemberOrderAPI,
+  getMemberOrderAPI,
+  putMemberOrderReceiptByIdAPI,
+} from '@/services/order'
 import { getPayMockAPI, getPayWxPayMiniPayAPI } from '@/services/pay'
 import type { OrderItem, OrderListParams } from '@/types/order'
 import { ref } from 'vue'
@@ -21,11 +25,22 @@ const queryParams: OrderListParams = {
   orderState: prpos.orderState,
 }
 
+// 判断是否是最后一页数据
+const finish = ref(false)
+
 // 获取并保存订单列表
 const orderList = ref<OrderItem[]>([])
 const getMemberOrderData = async () => {
+  if (finish.value) {
+    return uni.showToast({ icon: 'none', title: '没有更多数据了~' })
+  }
   const res = await getMemberOrderAPI(queryParams)
-  orderList.value = res.result.items
+  orderList.value.push(...res.result.items)
+  if (queryParams!.page! < res.result.pages) {
+    queryParams!.page!++
+  } else {
+    finish.value = true
+  }
 }
 
 onMounted(() => {
@@ -63,9 +78,43 @@ const onOrderPay = async (id: string) => {
   const order = orderList.value.find((v) => v.id === id)
   order!.orderState = OrderState.DaiFaHuo
 }
+
+// 确认收货
+const onOrderConfirm = (id: string) => {
+  // 二次确认
+  uni.showModal({
+    content: '为保障您的权益，请收到货并确认无误后，再确认收货',
+    success: async (res) => {
+      if (res.confirm) {
+        const res = await putMemberOrderReceiptByIdAPI(id)
+        // 更新订单状态
+        const order = orderList.value.find((v) => v.id === id)
+        order!.orderState = OrderState.DaiPingJia
+      }
+    },
+  })
+}
+
+// 滚动触底函数
+const onScrolltolower = () => {
+  getMemberOrderData()
+}
+
+// 对外暴露的刷新方法
+const refreshAPI = () => {
+  orderList.value = []
+  queryParams.page = 1
+  finish.value = false
+  getMemberOrderData()
+}
+
+// 暴露方法
+defineExpose({
+  refreshData: refreshAPI,
+})
 </script>
 <template>
-  <scroll-view scroll-y class="orders">
+  <scroll-view scroll-y class="orders" @scrolltolower="onScrolltolower">
     <view class="card" v-for="item in orderList" :key="item.id">
       <!-- 订单信息 -->
       <view class="status">
@@ -116,7 +165,10 @@ const onOrderPay = async (id: string) => {
             再次购买
           </navigator>
           <!-- 待收货状态: 展示确认收货 -->
-          <view v-if="item.orderState === OrderState.DaiShouHuo" class="button primary"
+          <view
+            v-if="item.orderState === OrderState.DaiShouHuo"
+            class="button primary"
+            @tap="onOrderConfirm(item.id)"
             >确认收货</view
           >
         </template>
@@ -124,7 +176,7 @@ const onOrderPay = async (id: string) => {
     </view>
     <!-- 底部提示文字 -->
     <view class="loading-text" :style="{ paddingBottom: safeAreaInsets?.bottom + 'px' }">
-      {{ true ? '没有更多数据~' : '正在加载...' }}
+      {{ finish === true ? '没有更多数据~' : '正在加载...' }}
     </view>
   </scroll-view>
 </template>

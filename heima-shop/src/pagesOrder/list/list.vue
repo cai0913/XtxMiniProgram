@@ -16,10 +16,29 @@ const activeIndex = ref(orderTabs.value.findIndex((v) => v.orderState === Number
 
 // 获取页面参数
 const query = defineProps<{ type: string }>()
+
+// orderlist组件实例
+const OrderListRef = ref()
+
+// 是否刷新
+const isRefresh = ref(false)
+
+// 触底刷新函数
+const onRefresh = async () => {
+  isRefresh.value = true
+  await Promise.all([OrderListRef.value[activeIndex.value].refreshData()])
+  isRefresh.value = false
+}
 </script>
 
 <template>
-  <view class="viewport">
+  <scroll-view
+    scroll-y
+    class="viewport"
+    @refresherrefresh="onRefresh"
+    refresher-enabled
+    :refresher-triggered="isRefresh"
+  >
     <!-- tabs -->
     <view class="tabs">
       <text
@@ -38,10 +57,10 @@ const query = defineProps<{ type: string }>()
       <!-- 滑动项 -->
       <swiper-item v-for="item in orderTabs" :key="item.title">
         <!-- 订单列表 -->
-        <order-list :order-state="item.orderState" />
+        <order-list :order-state="item.orderState" ref="OrderListRef" />
       </swiper-item>
     </swiper>
-  </view>
+  </scroll-view>
 </template>
 
 <style lang="scss">

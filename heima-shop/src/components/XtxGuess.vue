@@ -36,7 +36,6 @@ const getHomeGoodsLikeData = async () => {
   if (pageParams.page < res.result.pages) {
     // 页面累加
     pageParams.page++
-    console.log(pageParams.page)
   } else {
     finish.value = true
   }

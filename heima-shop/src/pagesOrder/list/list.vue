@@ -13,7 +13,10 @@ const orderTabs = ref([
 ])
 
 // 高亮下标
-const activeIndex = ref(0)
+const activeIndex = ref(orderTabs.value.findIndex((v) => v.orderState === Number(query.type)))
+
+// 获取页面参数
+const query = defineProps<{ type: string }>()
 </script>
 
 <template>
